@@ -1,42 +1,80 @@
 <template>
   <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+    <h1>Login With Google</h1>
+
+    <div
+      id="g_id_onload"
+      data-client_id="917452060688-54frsm3m4i41ukd0atbdsoe8kovdei2g.apps.googleusercontent.com"
+      data-context="signin"
+      data-ux_mode="popup"
+      data-callback="handleCredentialResponse"
+      data-auto_prompt="false"
+    ></div>
+
+    <div
+      class="g_id_signin"
+      data-type="standard"
+      data-shape="pill"
+      data-theme="filled_blue"
+      data-text="signin_with"
+      data-size="large"
+      data-logo_alignment="left"
+    ></div>
+    <h2 v-if="fullName">{{ fullName }}</h2>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'HelloWorld',
-  props: {
-    msg: String
-  }
+  name: "HelloWorld",
+  data() {
+    return {
+      fullName: "Nothing",
+    };
+  },
+  mounted() {
+    // Load the Google Sign-In API library
+    this.loadGoogleSignInLibrary();
+  },
+  methods: {
+    loadGoogleSignInLibrary() {
+      const script = document.createElement("script");
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    },
+    setName(name) {
+      this.fullName = name;
+    },
+  },
+};
+function decodeJwtResponse(token) {
+  let base64Url = token.split(".")[1];
+  let base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  let jsonPayload = decodeURIComponent(
+    atob(base64)
+      .split("")
+      .map(function (c) {
+        return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+      })
+      .join("")
+  );
+  return JSON.parse(jsonPayload);
 }
+
+window.handleCredentialResponse = (response) => {
+  // decodeJwtResponse() is a custom function defined by you
+  // to decode the credential response.
+  const responsePayload = decodeJwtResponse(response.credential);
+
+  console.log("ID: " + responsePayload.sub);
+  console.log("Full Name: " + responsePayload.name);
+  console.log("Given Name: " + responsePayload.given_name);
+  console.log("Family Name: " + responsePayload.family_name);
+  console.log("Image URL: " + responsePayload.picture);
+  console.log("Email: " + responsePayload.email);
+};
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
